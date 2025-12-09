@@ -1,0 +1,665 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>小諾的基本情報試驗 (Pink)</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            /* --- 粉紅風格配色 --- */
+            --bg-color: #fff0f5;       
+            --card-bg: #ffffff;
+            --text-main: #5c3a45;      
+            --text-sub: #a86e7d;       
+            
+            --accent-main: #ff85a2;    
+            --accent-hover: #ff5c8d;   
+            
+            --btn-blue: #8ac6d1;       
+            --btn-green: #97c1a9;      
+            --btn-red: #ff9aa2;        
+            --btn-gold: #ffd166;       
+
+            --shadow: 0 4px 10px rgba(255, 105, 180, 0.15); 
+            --radius: 20px;            
+        }
+
+        body {
+            font-family: 'Noto Sans TC', 'Noto Sans JP', sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* 按鈕樣式 */
+        .btn {
+            border: none;
+            border-radius: 25px; 
+            padding: 12px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: var(--shadow);
+            color: white;
+        }
+        .btn:active { transform: scale(0.95); }
+
+        .btn-green { background: var(--btn-green); }
+        .btn-blue { background: var(--btn-blue); }
+        .btn-red { background: var(--btn-red); }
+        .btn-gold { background: var(--btn-gold); }
+        
+        .btn-outline { 
+            background: white; 
+            border: 2px solid #fadadd; 
+            color: var(--text-main);
+            box-shadow: none;
+        }
+
+        .screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            max-width: 480px;
+            margin: 0 auto;
+            padding: 20px;
+            box-sizing: border-box;
+            position: relative;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 1.6rem;
+            color: var(--text-main);
+            margin: 10px 0 20px;
+            text-shadow: 2px 2px 0px #fff;
+        }
+
+        /* --- 大廳 --- */
+        #lobby-screen { display: flex; }
+        .chapter-list { flex: 1; overflow-y: auto; padding-bottom: 20px; }
+        
+        .chapter-card {
+            background: white;
+            padding: 18px;
+            margin-bottom: 15px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: transform 0.1s;
+        }
+        .chapter-card:active { transform: scale(0.98); border-color: var(--accent-main); }
+        
+        .tag-pill {
+            font-size: 0.8rem;
+            padding: 4px 10px;
+            border-radius: 15px;
+            background: #ffe4e1; 
+            color: var(--text-sub);
+            font-weight: bold;
+        }
+
+        /* --- 模態框 (選擇題數) --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(5px);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 200;
+        }
+        .modal-box {
+            background: white;
+            padding: 30px;
+            border-radius: 30px;
+            box-shadow: 0 10px 30px rgba(255, 105, 180, 0.3);
+            width: 80%;
+            max-width: 300px;
+            text-align: center;
+            border: 3px solid #ffe4e1;
+        }
+        .modal-title {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: var(--text-main);
+        }
+        .mode-btn {
+            width: 100%;
+            margin-bottom: 10px;
+            background: var(--accent-main);
+            color: white;
+            padding: 12px;
+            border-radius: 15px;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        .mode-btn:hover { background: var(--accent-hover); }
+        .mode-btn.secondary { background: #ffe4e1; color: var(--text-main); }
+
+        /* --- 學習卡片 --- */
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .card-area {
+            flex: 1;
+            perspective: 1000px;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .flashcard {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+            cursor: pointer;
+        }
+        .flashcard.flipped { transform: rotateY(180deg); }
+
+        .card-face {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 30px; 
+            background: white;
+            box-shadow: var(--shadow);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            box-sizing: border-box;
+            text-align: center;
+            border: 2px solid #fff0f5;
+        }
+
+        .card-back { transform: rotateY(180deg); background: #fffcfd; }
+
+        /* 卡片內容 */
+        .content-block { margin-bottom: 24px; width: 100%; }
+        
+        .lang-tag {
+            font-size: 0.75rem;
+            color: var(--text-sub);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+            font-weight: 700;
+        }
+
+        .term-main { font-size: 1.8rem; font-weight: 700; color: var(--text-main); line-height: 1.2; }
+        .term-sub { font-size: 0.9rem; color: var(--text-sub); margin-top: 5px; }
+        .term-eng { 
+            font-size: 0.85rem; 
+            color: #8ac6d1; 
+            background: #f0faff;
+            padding: 4px 10px;
+            border-radius: 10px;
+            display: inline-block;
+            margin-top: 8px;
+            font-weight: 500;
+        }
+
+        .divider {
+            height: 2px;
+            width: 40px;
+            background: #ffe4e1;
+            margin: 0 auto 24px auto;
+            border-radius: 2px;
+        }
+
+        .desc-text { font-size: 1.15rem; line-height: 1.6; color: #5c3a45; }
+
+        /* 功能按鈕 */
+        .bookmark-icon {
+            position: absolute;
+            top: 25px;
+            right: 25px;
+            font-size: 2rem;
+            color: #f0f0f0;
+            z-index: 10;
+            transition: color 0.2s;
+        }
+        .bookmark-icon.active { color: var(--btn-gold); }
+
+        .status-badge {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            background: var(--btn-red);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            display: none;
+        }
+
+        .bottom-controls { display: flex; gap: 15px; }
+        .bottom-controls button { flex: 1; height: 60px; font-size: 1.1rem; border-radius: 20px;}
+
+        /* Toast */
+        .toast {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(92, 58, 69, 0.9);
+            color: white;
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-size: 0.95rem;
+            opacity: 0;
+            transition: opacity 0.3s;
+            pointer-events: none;
+            z-index: 300;
+        }
+        
+        /* 列表項目 */
+        .list-item {
+            background: white;
+            padding: 15px;
+            margin-bottom: 10px;
+            border-radius: 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="toast" id="toast">歡迎回來</div>
+    <script src="questions.js"></script>
+
+    <div class="modal-overlay" id="mode-modal">
+        <div class="modal-box">
+            <div class="modal-title">✨ 請選擇本次題數</div>
+            <button class="mode-btn" onclick="confirmStart(10)">🌸 10 題 (快速)</button>
+            <button class="mode-btn" onclick="confirmStart(20)">🌷 20 題 (標準)</button>
+            <button class="mode-btn" onclick="confirmStart(30)">🌹 30 題 (挑戰)</button>
+            <button class="mode-btn secondary" onclick="confirmStart('all')">📚 全部複習</button>
+            <div style="margin-top:15px; font-size:0.9rem; color:#a86e7d; cursor:pointer;" onclick="closeModal()">✕ 取消</div>
+        </div>
+    </div>
+
+    <div id="lobby-screen" class="screen" style="display: flex;">
+        <h1>🌸 小諾的基本情報試驗</h1>
+        
+        <div class="chapter-list" id="chapter-list">
+            </div>
+
+        <div style="margin-top: 10px;">
+            <div style="display: flex; gap:12px; margin-bottom: 12px;">
+                <button class="btn btn-outline" style="flex:1;" onclick="startBookmarkSession()">
+                    <span style="color:var(--btn-gold); margin-right:5px;">★</span> 收藏 (<span id="bookmark-count">0</span>)
+                </button>
+                <button class="btn btn-outline" style="flex:1;" onclick="showMasteredScreen()">
+                    <span style="color:var(--btn-green); margin-right:5px;">🏆</span> 已掌握 (<span id="mastered-count">0</span>)
+                </button>
+            </div>
+            <button class="btn btn-outline" style="width: 100%; font-size: 0.9rem; color: #a86e7d; border-color:transparent;" onclick="resetProgress()">
+                重置所有進度
+            </button>
+        </div>
+    </div>
+
+    <div id="study-screen" class="screen">
+        <div class="top-bar">
+            <button class="btn btn-outline" style="padding: 8px 16px; font-size:0.9rem; border-radius:15px;" onclick="goBackToLobby()">✕ 結束</button>
+            <div style="font-weight:600; color:var(--text-sub);">
+                剩餘 <span id="remain-count">0</span> 張
+            </div>
+        </div>
+
+        <div class="card-area">
+            <div class="flashcard" id="flashcard" onclick="flipCard()">
+                <div class="card-face card-front">
+                    <div class="bookmark-icon" id="bookmark-icon" onclick="toggleBookmark(event)">★</div>
+                    <div class="status-badge" id="debt-badge">需複習</div>
+                    
+                    <div class="content-block">
+                        <div class="lang-tag">中文</div>
+                        <div class="term-main" id="term-zh">---</div>
+                    </div>
+
+                    <div class="divider"></div>
+
+                    <div class="content-block">
+                        <div class="lang-tag">日本語</div>
+                        <div class="term-main" id="term-ja" style="color: var(--accent-hover);">---</div>
+                        <div class="term-sub" id="term-yomi">---</div>
+                        <div class="term-eng" id="term-eng">---</div>
+                    </div>
+
+                    <div style="margin-top:auto; color: #dcb0ba; font-size: 0.85rem;">Tap to flip</div>
+                </div>
+
+                <div class="card-face card-back">
+                    <div class="content-block">
+                        <div class="lang-tag">解釋</div>
+                        <div class="desc-text" id="desc-zh">---</div>
+                    </div>
+                    <div class="divider"></div>
+                    <div class="content-block">
+                        <div class="lang-tag">解説</div>
+                        <div class="desc-text" id="desc-ja">---</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="bottom-controls">
+            <button class="btn btn-red" onclick="handleBlurry()">模糊</button>
+            <button class="btn btn-blue" onclick="handleKnow()">認識</button>
+            <button class="btn btn-green" onclick="handleMastered()">已掌握</button>
+        </div>
+    </div>
+
+    <div id="mastered-screen" class="screen">
+        <div class="top-bar">
+            <button class="btn btn-outline" onclick="goBackToLobby()">◀ 返回</button>
+            <span style="font-weight:bold; color:var(--text-main);">已掌握清單</span>
+        </div>
+        <div class="chapter-list" id="mastered-list"></div>
+    </div>
+
+    <script>
+        const rawData = (typeof questionData !== 'undefined') ? questionData : [];
+
+        // 狀態變數
+        let sessionDeck = []; 
+        let currentCard = null;
+        let sessionDebt = {}; 
+        let masteredIds = JSON.parse(localStorage.getItem('fe_mastered')) || [];
+        let bookmarkedIds = JSON.parse(localStorage.getItem('fe_bookmarked')) || [];
+        let selectedCategory = null; 
+
+        function init() { 
+            if(rawData.length === 0) alert("請確認 questions.js 已載入");
+            renderLobby(); 
+        }
+
+        function saveData() {
+            localStorage.setItem('fe_mastered', JSON.stringify(masteredIds));
+            localStorage.setItem('fe_bookmarked', JSON.stringify(bookmarkedIds));
+            renderLobby();
+        }
+
+        // --- 畫面切換 ---
+        function showScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.style.display = 'none');
+            document.getElementById(id).style.display = 'flex';
+        }
+        function goBackToLobby() { 
+            showScreen('lobby-screen'); 
+            renderLobby(); 
+        }
+
+        // --- 大廳 ---
+        function renderLobby() {
+            const listEl = document.getElementById('chapter-list');
+            listEl.innerHTML = "";
+            const categories = [...new Set(rawData.map(item => item.cat))];
+
+            categories.forEach(cat => {
+                const itemsInCat = rawData.filter(i => i.cat === cat);
+                const remaining = itemsInCat.filter(i => !masteredIds.includes(i.id)).length;
+                
+                const div = document.createElement('div');
+                div.className = 'chapter-card';
+                // 使用箭頭函式確保傳遞正確的變數
+                div.onclick = () => openModeModal(cat);
+                div.innerHTML = `
+                    <div>
+                        <div style="font-weight:700; font-size:1.1rem; margin-bottom:5px; color:var(--text-main);">${cat}</div>
+                        <span class="tag-pill">${remaining === 0 ? '🎉 全部完成' : `剩餘 ${remaining} 題`}</span>
+                    </div>
+                    <div style="color:var(--accent-main); font-size:1.2rem;">▶</div>
+                `;
+                listEl.appendChild(div);
+            });
+            document.getElementById('bookmark-count').innerText = bookmarkedIds.length;
+            document.getElementById('mastered-count').innerText = masteredIds.length;
+        }
+
+        // --- 模式選擇邏輯 ---
+        function openModeModal(category) {
+            selectedCategory = category;
+            const pool = rawData.filter(item => item.cat === category && !masteredIds.includes(item.id));
+            
+            if (pool.length === 0) {
+                // 如果已全滿，詢問複習
+                if(confirm("此章節已全部掌握！要進行總複習嗎？")) {
+                     document.getElementById('mode-modal').style.display = 'flex';
+                }
+            } else {
+                document.getElementById('mode-modal').style.display = 'flex';
+            }
+        }
+
+        function closeModal() {
+            document.getElementById('mode-modal').style.display = 'none';
+            selectedCategory = null;
+        }
+
+        // 核心修正：確認開始並抽題
+        function confirmStart(count) {
+            // 1. 先抓題目，確保 selectedCategory 還在
+            let pool = rawData.filter(item => item.cat === selectedCategory && !masteredIds.includes(item.id));
+            
+            // 複習模式邏輯
+            if (pool.length === 0) {
+                pool = rawData.filter(item => item.cat === selectedCategory);
+            }
+
+            // 2. 關閉視窗 (這會把 selectedCategory 設為 null，所以一定要在上面抓完資料後才做)
+            closeModal();
+
+            // 洗牌
+            for (let i = pool.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [pool[i], pool[j]] = [pool[j], pool[i]];
+            }
+
+            // 切片
+            if (count !== 'all') {
+                sessionDeck = pool.slice(0, count);
+            } else {
+                sessionDeck = pool;
+            }
+
+            // 啟動
+            sessionDebt = {}; 
+            showScreen('study-screen');
+            pickRandomCard();
+        }
+
+        // --- 學習邏輯 ---
+        function startBookmarkSession() {
+            sessionDeck = rawData.filter(item => bookmarkedIds.includes(item.id));
+            if (sessionDeck.length === 0) { showToast("收藏夾是空的"); return; }
+            sessionDebt = {};
+            showScreen('study-screen');
+            pickRandomCard();
+        }
+
+        function pickRandomCard() {
+            if (sessionDeck.length === 0) {
+                alert("太棒了！本輪練習結束 ✨");
+                goBackToLobby();
+                return;
+            }
+            let nextIndex = 0;
+            if (sessionDeck.length > 1 && currentCard) {
+                do { nextIndex = Math.floor(Math.random() * sessionDeck.length); } 
+                while (sessionDeck[nextIndex].id === currentCard.id);
+            }
+            currentCard = sessionDeck[nextIndex];
+            renderCard();
+        }
+
+        function renderCard() {
+            const cardEl = document.getElementById('flashcard');
+            cardEl.classList.remove('flipped');
+            document.getElementById('remain-count').innerText = sessionDeck.length;
+
+            setTimeout(() => {
+                document.getElementById('term-zh').innerText = currentCard.zh;
+                document.getElementById('term-ja').innerText = currentCard.ja;
+                
+                const yomiEl = document.getElementById('term-yomi');
+                yomiEl.innerText = currentCard.yomi || '';
+                yomiEl.style.display = currentCard.yomi ? 'block' : 'none';
+
+                const engEl = document.getElementById('term-eng');
+                engEl.innerText = currentCard.eng || '';
+                engEl.style.display = currentCard.eng ? 'inline-block' : 'none';
+
+                document.getElementById('desc-zh').innerText = currentCard.desc_zh;
+                document.getElementById('desc-ja').innerText = currentCard.desc_ja;
+
+                const star = document.getElementById('bookmark-icon');
+                star.className = bookmarkedIds.includes(currentCard.id) ? 'bookmark-icon active' : 'bookmark-icon';
+                
+                const debt = sessionDebt[currentCard.id] || 0;
+                const badge = document.getElementById('debt-badge');
+                if (debt > 0) {
+                    badge.style.display = 'block';
+                    badge.innerText = `需複習 x${debt}`;
+                } else {
+                    badge.style.display = 'none';
+                }
+            }, 200);
+        }
+
+        // --- 按鈕動作 ---
+        function handleBlurry() {
+            const id = currentCard.id;
+            sessionDebt[id] = (sessionDebt[id] || 0) + 1;
+            showToast(`標記模糊 (X ${sessionDebt[id]} 次)`);
+            pickRandomCard();
+        }
+
+        function handleKnow() {
+            const id = currentCard.id;
+            if (sessionDebt[id] > 0) {
+                sessionDebt[id]--;
+                showToast(sessionDebt[id] === 0 ? "已消除模糊狀態！" : `還需答對 ${sessionDebt[id]} 次`);
+                if(sessionDebt[id] === 0) sessionDeck = sessionDeck.filter(c => c.id !== id);
+            } else {
+                sessionDeck = sessionDeck.filter(c => c.id !== id);
+                showToast("Pass! ✨");
+            }
+            pickRandomCard();
+        }
+
+        function handleMastered() {
+            if (!masteredIds.includes(currentCard.id)) {
+                masteredIds.push(currentCard.id);
+                saveData();
+            }
+            sessionDeck = sessionDeck.filter(c => c.id !== currentCard.id);
+            showToast("已加入掌握清單 🏆");
+            pickRandomCard();
+        }
+
+        function flipCard() {
+            document.getElementById('flashcard').classList.toggle('flipped');
+        }
+
+        function toggleBookmark(e) {
+            e.stopPropagation();
+            const id = currentCard.id;
+            if (bookmarkedIds.includes(id)) {
+                bookmarkedIds = bookmarkedIds.filter(bid => bid !== id);
+                showToast("已取消收藏");
+            } else {
+                bookmarkedIds.push(id);
+                showToast("已收藏 ❤️");
+            }
+            saveData();
+            const star = document.getElementById('bookmark-icon');
+            star.className = bookmarkedIds.includes(id) ? 'bookmark-icon active' : 'bookmark-icon';
+        }
+
+        function showMasteredScreen() {
+            const list = document.getElementById('mastered-list');
+            list.innerHTML = "";
+            const masteredItems = rawData.filter(item => masteredIds.includes(item.id));
+
+            if(masteredItems.length === 0) {
+                list.innerHTML = "<div style='text-align:center; padding:20px; color:#a86e7d;'>目前沒有已掌握的卡片</div>";
+            } else {
+                masteredItems.forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'list-item';
+                    div.innerHTML = `
+                        <div>
+                            <div style="font-weight:bold; color:var(--text-main);">${item.zh}</div>
+                            <div style="font-size:0.85rem; color:var(--text-sub);">${item.ja}</div>
+                        </div>
+                        <button class="btn btn-outline" style="font-size:0.8rem; padding:6px 12px; border-color:#ff9aa2; color:#ff9aa2;" onclick="unMaster(${item.id})">
+                            忘記
+                        </button>
+                    `;
+                    list.appendChild(div);
+                });
+            }
+            showScreen('mastered-screen');
+        }
+
+        function unMaster(id) {
+            if(confirm("確定將此卡片移回學習區嗎？")) {
+                masteredIds = masteredIds.filter(mid => mid !== id);
+                saveData();
+                showMasteredScreen();
+                showToast("已移回");
+            }
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.style.opacity = 1;
+            setTimeout(() => t.style.opacity = 0, 1500);
+        }
+
+        function resetProgress() {
+            if(confirm("這將刪除所有學習記錄，確定嗎？")) {
+                localStorage.clear();
+                location.reload();
+            }
+        }
+
+        init();
+    </script>
+</body>
+</html>
