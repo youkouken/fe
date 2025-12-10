@@ -415,7 +415,7 @@ const questionData = [
     { id: 397, cat: "技術管理", zh: "Debug", ja: "デバッグ", yomi: "でばっぐ", eng: "Debug", desc_zh: "除錯，修正程式錯誤。", desc_ja: "バグを修正する作業。" },
     { id: 398, cat: "技術管理", zh: "Patch", ja: "パッチ", yomi: "ぱっち", eng: "Patch", desc_zh: "修補程式。", desc_ja: "修正プログラム。" },
     { id: 399, cat: "技術管理", zh: "Version", ja: "バージョン", yomi: "ばーじょん", eng: "Version", desc_zh: "版本。", desc_ja: "版。" },
-    { id: 400, cat: "技術管理", zh: "Release", ja: "リリース", yomi: "りりーす", eng: "Release", desc_zh: "發布軟體。", desc_ja: "ソフトを公開・発売すること。" }
+    { id: 400, cat: "技術管理", zh: "Release", ja: "リリース", yomi: "りりーす", eng: "Release", desc_zh: "發布軟體。", desc_ja: "ソフトを公開・発売すること。" },
 // --- 新增：ID 401-500 (資安/網路/資料庫/財務) ---
     { id: 401, cat: "電腦系統", zh: "零時差攻擊", ja: "ゼロデイ攻撃", yomi: "ぜろでいこうげき", eng: "Zero-day Attack", desc_zh: "在軟體漏洞被發現但尚未修補前進行的攻擊。", desc_ja: "修正プログラムが公開される前の脆弱性を突く攻撃。" },
     { id: 402, cat: "電腦系統", zh: "緩衝區溢位", ja: "バッファオーバーフロー", yomi: "ばっふぁおーばーふろー", eng: "Buffer Overflow", desc_zh: "輸入超過記憶體預留空間的資料，導致系統崩潰或執行惡意碼。", desc_ja: "メモリ領域の上限を超えたデータを送りつける攻撃。" },
